@@ -1,4 +1,4 @@
-ldap-ssh-pubkey
+ldap-ssh-pubkey [![Build Status](https://travis-ci.org/keichan34/ansible-ldap-ssh-pubkey.svg?branch=master)](https://travis-ci.org/keichan34/ansible-ldap-ssh-pubkey)
 =========
 
 A simple Ansible role to configure LDAP logins with SSH public keys.
