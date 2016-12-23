@@ -1,0 +1,23 @@
+galaxy_info:
+  author: Keitaroh Kobayashi
+  description: A simple Ansible role to configure LDAP logins with SSH public keys.
+
+  issue_tracker_url: https://github.com/keichan34/ansible-ldap-ssh-pubkey
+
+  license: MIT
+
+  min_ansible_version: 1.2
+
+  github_branch: master
+
+  platforms:
+    - name: Amazon
+      versions:
+      - 2016.03
+      - 2016.09
+
+  galaxy_tags:
+    - ldap
+    - ssh
+
+dependencies: []

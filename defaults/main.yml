@@ -1,0 +1,8 @@
+---
+ad_access_filter: "&(memberof=CN=Sudoers,OU=Groups,DC=directory,DC=internal)"
+sudo_groups:
+  - Sudoers
+joiner_account: "JoinerAccount"
+joiner_password: "JoinerAccountPassword"
+directory_name: "directory.internal"
+ldap_pubkey_field: "sshPublicKey"

@@ -1,0 +1,43 @@
+---
+- name: Install krb5.conf
+  become: true
+  become_user: root
+  template: src=krb5.conf.j2 dest=/etc/krb5.conf mode=0644
+
+- name: Perform realm join
+  become: true
+  become_user: root
+  expect:
+    command: realm join {{directory_name}} --user={{ joiner_account }}@{{directory_name|upper}} --verbose
+    responses:
+      Password for [^@]+@[A-Z.]+: "{{ joiner_password }}"
+
+- name: Allow user to log in without fully qualified name
+  become: true
+  become_user: root
+  lineinfile: dest=/etc/sssd/sssd.conf state=present regexp="^use_fully_qualified_names" line="use_fully_qualified_names = False"
+  notify: restart sssd
+
+- name: Pull SSH public key from {{ldap_pubkey_field}} field
+  become: true
+  become_user: root
+  lineinfile: dest=/etc/sssd/sssd.conf state=present regexp="^ldap_user_ssh_public_key" line="ldap_user_ssh_public_key = {{ldap_pubkey_field}}" insertafter="^access_provider"
+  notify: restart sssd
+
+- name: Set services list
+  become: true
+  become_user: root
+  lineinfile: dest=/etc/sssd/sssd.conf state=present regexp="^services" line="services = nss, pam, ssh"
+  notify: restart sssd
+
+- name: Set AuthorizedKeysCommand
+  become: true
+  become_user: root
+  lineinfile: dest=/etc/ssh/sshd_config state=present regexp="^AuthorizedKeysCommand" line="AuthorizedKeysCommand /usr/bin/sss_ssh_authorizedkeys" insertafter="^#AuthorizedKeysCommand"
+  notify: restart sshd
+
+- name: Set AuthorizedKeysCommandUser
+  become: true
+  become_user: root
+  lineinfile: dest=/etc/ssh/sshd_config state=present regexp="^AuthorizedKeysCommandUser" line="AuthorizedKeysCommandUser nobody" insertafter="^#AuthorizedKeysCommandUser"
+  notify: restart sshd

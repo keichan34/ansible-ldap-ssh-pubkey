@@ -1,0 +1,46 @@
+---
+- name: Verify directory service is reachable
+  command: ping -c 2 -i 0.2 {{directory_name}}
+
+- name: Install required packages
+  become: true
+  become_user: root
+  yum: name={{item}} state=present
+  with_items:
+    - sssd
+    - realmd
+    - krb5-workstation
+
+- name: Install pip packages
+  become: true
+  become_user: root
+  pip: name={{item}}
+  with_items:
+    - pexpect
+
+- name: Check if machine is already joined to directory
+  become: true
+  become_user: root
+  shell: realm list | grep "{{directory_name}}" | wc -l
+  register: joined
+
+- include: join.yml
+  when: joined.stdout|int == 0
+
+- name: Allow appropriate groups to access this host
+  become: true
+  become_user: root
+  lineinfile: dest=/etc/sssd/sssd.conf state=present regexp="^ad_access_filter" line="ad_access_filter = {{ ad_access_filter }}" insertafter="^ldap_user_ssh_public_key"
+  notify: restart sssd
+
+- name: Allow appropriate groups to sudo on this host
+  become: true
+  become_user: root
+  lineinfile:
+    dest: /etc/sudoers
+    state: present
+    regexp: '^%{{directory_name|upper}}\\{{item}} ALL='
+    line: '%{{directory_name|upper}}\\{{item}} ALL=(ALL) NOPASSWD: ALL'
+    validate: 'visudo -cf %s'
+    insertafter: '^root'
+  with_items: "{{sudo_groups}}"
